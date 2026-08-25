@@ -1,10 +1,12 @@
 // ============================================================
 // Band lineup form — app.js
 // ============================================================
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwUZqmCgcR0avtLLikC_7HBklw5JGs2-Da6mELwrGb-zDPTzi28RX2waLcbxLW6sgHKA/exec";
 
 const bandCountInput = document.getElementById("bandCount");
 const bandsContainer = document.getElementById("bands");
 const orderList = document.getElementById("orderList");
+const soundcheckList = document.getElementById("soundcheckList");
 const eventForm = document.getElementById("eventForm");
 const saveButton = document.getElementById("saveButton");
 const result = document.getElementById("result");
@@ -47,6 +49,7 @@ function updateBandCount() {
 
 	renderBands();
 	renderOrder();
+	renderSoundcheck();
 }
 
 // ============================================================
@@ -150,15 +153,101 @@ function renderBands() {
 	});
 }
 
+function computeSchedule() {
+	const n = bands.length;
+	const totalPerf = bands.reduce(
+		(sum, band) => sum + (Number(band.duration) || 0),
+		0
+	);
+	const changeTime = (n - 1) * 10;
+	const isLongSet = totalPerf + changeTime > 120;
+	const totalLength = isLongSet ? 150 : 120;
+
+	// Leftover time is split into n-1 gaps between bands,
+	// rounded down to multiples of 5 minutes (min 10 min),
+	// then the remainder is spread one extra 5 min at a time.
+	const leftover = totalLength - totalPerf;
+	const gaps = [];
+	let baseGap = Math.max(10, Math.floor(leftover / (n - 1) / 5) * 5);
+	let remainder = leftover - baseGap * (n - 1);
+
+	for (let i = 0; i < n - 1; i++) {
+		let gap = baseGap;
+
+		if (remainder >= 5) {
+			gap += 5;
+			remainder -= 5;
+		}
+
+		gaps.push(gap);
+	}
+
+	const endTime = 23 * 60; // 23:00 in minutes
+	let current = endTime - totalLength;
+
+	return bands.map((band, index) => {
+		const duration = Number(band.duration) || 0;
+		const start = current;
+		const end = start + duration;
+
+		current = end + (gaps[index] || 0);
+
+		return {
+			start: formatTime(start),
+			end: formatTime(end)
+		};
+	});
+}
+
+function renderSoundcheck() {
+	soundcheckList.innerHTML = "";
+
+	const n = bands.length;
+	if (n === 0) {
+		return;
+	}
+
+	const start = 18 * 60; // 18:00
+	const end = 20 * 60; // 20:00
+	const slotLength = (end - start) / n;
+
+	// Soundcheck order: bands 2..n first (in performance order),
+	// the first performing band checks sound last.
+	const rotated = [...bands.slice(1), bands[0]];
+
+	rotated.forEach((band, index) => {
+		const item = document.createElement("div");
+		item.className = "order-item";
+
+		const slotStart = start + index * slotLength;
+		const slotEnd = slotStart + slotLength;
+
+		const title = document.createElement("span");
+		title.textContent = `${formatTime(slotStart)}–${formatTime(slotEnd)} ${band.name || `Band ${bands.indexOf(band) + 1}`}`;
+
+		item.appendChild(title);
+		soundcheckList.appendChild(item);
+	});
+}
+
+function formatTime(minutes) {
+	const hours = Math.floor(minutes / 60);
+	const mins = Math.round(minutes % 60);
+
+	return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+
 function renderOrder() {
 	orderList.innerHTML = "";
+
+	const schedule = computeSchedule();
 
 	bands.forEach((band, index) => {
 		const item = document.createElement("div");
 		item.className = "order-item";
 
 		const title = document.createElement("span");
-		title.textContent = band.name || `Band ${index + 1}`;
+		title.textContent = `${schedule[index].start}–${schedule[index].end} ${band.name || `Band ${index + 1}`}`;
 
 		const controls = document.createElement("div");
 		controls.className = "order-controls";
@@ -201,8 +290,9 @@ function updateBand(event) {
 		bands[index][field] = input.value;
 	}
 
-	if (field === "name") {
+	if (field === "name" || field === "duration") {
 		renderOrder();
+		renderSoundcheck();
 	}
 }
 
@@ -219,6 +309,7 @@ function moveBand(index, direction) {
 
 	renderBands();
 	renderOrder();
+	renderSoundcheck();
 }
 
 // ============================================================
@@ -231,11 +322,17 @@ eventForm.addEventListener("submit", async event => {
 	saveButton.disabled = true;
 	status.textContent = "Saving...";
 
+	const schedule = computeSchedule();
+
 	const data = {
 		date: document.getElementById("date").value,
 		startTime: document.getElementById("startTime").value,
 		organizer: document.getElementById("organizer").value,
-		bands: bands
+		bands: bands.map((band, index) => ({
+			...band,
+			slotStart: schedule[index].start,
+			slotEnd: schedule[index].end
+		}))
 	};
 
 	try {
@@ -296,6 +393,5 @@ function escapeHtml(value) {
 /*
  * Insert the published Google Apps Script URL here.
  */
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwUZqmCgcR0avtLLikC_7HBklw5JGs2-Da6mELwrGb-zDPTzi28RX2waLcbxLW6sgHKA/exec";
 
 updateBandCount();

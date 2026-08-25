@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Events</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <main class="container">
+
+    <header class="page-header">
+      <h1>Events</h1>
+      <p id="period"></p>
+    </header>
+
+    <div id="calendar"></div>
+
+    <div id="loading" class="loading">
+      Loading...
+    </div>
+
+    <div id="error" class="error hidden"></div>
+
+  </main>
+
+
+  <div id="eventModal" class="modal hidden">
+
+    <div class="modal-content">
+
+      <button
+        id="closeModal"
+        class="close-button"
+        type="button"
+      >
+        ×
+      </button>
+
+      <div id="eventDetails"></div>
+
+      <button
+        id="copyButton"
+        class="copy-button"
+        type="button"
+      >
+        Copy text
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
