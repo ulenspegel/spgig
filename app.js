@@ -296,6 +296,6 @@ function escapeHtml(value) {
 /*
  * Insert the published Google Apps Script URL here.
  */
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySnbvOO2Ii0eaDhOeJ9PX-CIj76dhEzHNZYiYn1IaVM8RoxuHQQw5Bjto-qpoNUH7Q3w/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwUZqmCgcR0avtLLikC_7HBklw5JGs2-Da6mELwrGb-zDPTzi28RX2waLcbxLW6sgHKA/exec";
 
 updateBandCount();
