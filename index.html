@@ -1,70 +1,82 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мероприятие</title>
-  <link rel="stylesheet" href="style.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Event</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <main class="container">
-    <h1>Мероприятие</h1>
+	<main class="container">
+		<h1>Event</h1>
 
-    <form id="eventForm">
-      <section class="section">
-        <h2>Общая информация</h2>
+		<form id="eventForm">
+			<!-- ================================================== -->
+			<!-- General information                                -->
+			<!-- ================================================== -->
+			<section class="section">
+				<h2>General information</h2>
 
-        <label>
-          Дата
-          <input type="date" id="date" required>
-        </label>
+				<label>
+					Date
+					<input type="date" id="date" required>
+				</label>
 
-        <label>
-          Время старта
-          <input type="time" id="startTime" required>
-        </label>
+				<label>
+					Start time
+					<input type="time" id="startTime" required>
+				</label>
 
-        <label>
-          Контакт организатора
-          <input type="text" id="organizer" required>
-        </label>
+				<label>
+					Organizer contact
+					<input type="text" id="organizer" required>
+				</label>
 
-        <label>
-          Сколько банд
-          <input type="number" id="bandCount" min="1" max="50" value="1" required>
-        </label>
-      </section>
+				<label>
+					Number of bands
+					<input type="number" id="bandCount" min="1" max="50" value="1" required>
+				</label>
+			</section>
 
-      <section class="section">
-        <h2>Банды</h2>
-        <div id="bands"></div>
-      </section>
+			<!-- ================================================== -->
+			<!-- Bands                                              -->
+			<!-- ================================================== -->
+			<section class="section">
+				<h2>Bands</h2>
+				<div id="bands"></div>
+			</section>
 
-      <section class="section">
-        <h2>Порядок выступлений</h2>
-        <p class="hint">Перетащите банды в нужном порядке.</p>
-        <div id="orderList"></div>
-      </section>
+			<!-- ================================================== -->
+			<!-- Performance order                                  -->
+			<!-- ================================================== -->
+			<section class="section">
+				<h2>Performance order</h2>
+				<p class="hint">Drag the bands into the desired order.</p>
+				<div id="orderList"></div>
+			</section>
 
-      <button type="submit" id="saveButton">
-        Сохранить
-      </button>
-    </form>
+			<button type="submit" id="saveButton">
+				Save
+			</button>
+		</form>
 
-    <section id="result" class="section hidden">
-      <h2>Готовый текст</h2>
+		<!-- ====================================================== -->
+		<!-- Result                                                 -->
+		<!-- ====================================================== -->
+		<section id="result" class="section hidden">
+			<h2>Result text</h2>
 
-      <textarea id="resultText" readonly></textarea>
+			<textarea id="resultText" readonly></textarea>
 
-      <button type="button" id="copyButton">
-        Скопировать
-      </button>
-    </section>
+			<button type="button" id="copyButton">
+				Copy
+			</button>
+		</section>
 
-    <div id="status"></div>
-  </main>
+		<div id="status"></div>
+	</main>
 
-  <script src="app.js"></script>
+	<script src="app.js"></script>
 </body>
 </html>
