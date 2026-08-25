@@ -262,6 +262,6 @@ function escapeHtml(value) {
 /*
  * Сюда потом вставим URL опубликованного Google Apps Script.
  */
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym21fQUjYi3MYUpzE7onzy68l548RJYbwqTva31AYZ7jrWeSJ7KzwvnGIwOWH0xpQ/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbySnbvOO2Ii0eaDhOeJ9PX-CIj76dhEzHNZYiYn1IaVM8RoxuHQQw5Bjto-qpoNUH7Q3w/exec";
 
 updateBandCount();
