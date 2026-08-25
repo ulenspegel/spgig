@@ -262,6 +262,6 @@ function escapeHtml(value) {
 /*
  * Сюда потом вставим URL опубликованного Google Apps Script.
  */
-const GOOGLE_SCRIPT_URL = "PASTE_GOOGLE_SCRIPT_URL_HERE";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym21fQUjYi3MYUpzE7onzy68l548RJYbwqTva31AYZ7jrWeSJ7KzwvnGIwOWH0xpQ/exec";
 
 updateBandCount();
