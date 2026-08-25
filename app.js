@@ -153,50 +153,53 @@ function updateBand(event) {
     renderOrder();
   }
 }
-
 function renderOrder() {
   orderList.innerHTML = "";
 
   bands.forEach((band, index) => {
     const item = document.createElement("div");
-
     item.className = "order-item";
-    item.draggable = true;
-    item.dataset.index = index;
-    item.textContent = band.name || `Банда ${index + 1}`;
 
-    item.addEventListener("dragstart", dragStart);
-    item.addEventListener("dragover", dragOver);
-    item.addEventListener("drop", drop);
+    const title = document.createElement("span");
+    title.textContent = band.name || `Банда ${index + 1}`;
+
+    const controls = document.createElement("div");
+    controls.className = "order-controls";
+
+    const upButton = document.createElement("button");
+    upButton.type = "button";
+    upButton.textContent = "↑";
+    upButton.disabled = index === 0;
+
+    const downButton = document.createElement("button");
+    downButton.type = "button";
+    downButton.textContent = "↓";
+    downButton.disabled = index === bands.length - 1;
+
+    upButton.addEventListener("click", () => moveBand(index, -1));
+    downButton.addEventListener("click", () => moveBand(index, 1));
+
+    controls.appendChild(upButton);
+    controls.appendChild(downButton);
+
+    item.appendChild(title);
+    item.appendChild(controls);
 
     orderList.appendChild(item);
   });
 }
 
-let draggedIndex = null;
 
-function dragStart(event) {
-  draggedIndex = Number(event.currentTarget.dataset.index);
-  event.currentTarget.classList.add("dragging");
-}
+function moveBand(index, direction) {
+  const newIndex = index + direction;
 
-function dragOver(event) {
-  event.preventDefault();
-}
-
-function drop(event) {
-  event.preventDefault();
-
-  const targetIndex = Number(event.currentTarget.dataset.index);
-
-  if (draggedIndex === null || draggedIndex === targetIndex) {
+  if (newIndex < 0 || newIndex >= bands.length) {
     return;
   }
 
-  const moved = bands.splice(draggedIndex, 1)[0];
-  bands.splice(targetIndex, 0, moved);
-
-  draggedIndex = null;
+  const temp = bands[index];
+  bands[index] = bands[newIndex];
+  bands[newIndex] = temp;
 
   renderBands();
   renderOrder();
