@@ -133,10 +133,6 @@ function validateData(data) {
     throw new Error('Date is required');
   }
 
-  if (!data.startTime) {
-    throw new Error('Start time is required');
-  }
-
   if (!data.organizer || !data.organizer.trim()) {
     throw new Error('Organizer is required');
   }
@@ -170,8 +166,35 @@ function validateData(data) {
 function buildText(data) {
   const lines = [];
 
-  lines.push(`${formatDate(data.date)} — Start: ${data.startTime}`);
+  lines.push(`${formatDate(data.date)}`);
   lines.push(`Organizer: ${data.organizer}`);
+  lines.push('');
+
+  const n = data.bands.length;
+
+  // Performance slots as computed by the form.
+  lines.push('Performance times');
+  data.bands.forEach((band, index) => {
+    if (band.slotStart && band.slotEnd) {
+      lines.push(`${band.slotStart}–${band.slotEnd} ${band.name}`);
+    } else {
+      lines.push(`${index + 1}. ${band.name}`);
+    }
+  });
+  lines.push('');
+
+  // Soundcheck slots: 18:00–20:00 split evenly,
+  // bands 2..n first, the first performing band last.
+  const scStart = 18 * 60;
+  const scSlot = (2 * 60) / n;
+  const rotated = data.bands.slice(1).concat([data.bands[0]]);
+
+  lines.push('Soundchecks:');
+  rotated.forEach((band, index) => {
+    const start = scStart + index * scSlot;
+    const end = start + scSlot;
+    lines.push(`${formatTime(start)}–${formatTime(end)} ${band.name}`);
+  });
   lines.push('');
 
   let totalDuration = 0;
@@ -204,6 +227,14 @@ function buildText(data) {
   lines.push(`Total duration: ${totalDuration} min`);
 
   return lines.join('\n');
+}
+
+
+function formatTime(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
 }
 
 

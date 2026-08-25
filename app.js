@@ -1,7 +1,7 @@
 // ============================================================
 // Band lineup form — app.js
 // ============================================================
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwUZqmCgcR0avtLLikC_7HBklw5JGs2-Da6mELwrGb-zDPTzi28RX2waLcbxLW6sgHKA/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVukzuYP5HSMVrRGOo3UluWlXCL2iDfxuWnzI9CRIm0_GzS8F-k4lZQ5spuLAn-aziwA/exec";
 
 const bandCountInput = document.getElementById("bandCount");
 const bandsContainer = document.getElementById("bands");
@@ -326,7 +326,6 @@ eventForm.addEventListener("submit", async event => {
 
 	const data = {
 		date: document.getElementById("date").value,
-		startTime: document.getElementById("startTime").value,
 		organizer: document.getElementById("organizer").value,
 		bands: bands.map((band, index) => ({
 			...band,

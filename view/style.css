@@ -278,3 +278,17 @@
       padding: 20px 15px;
     }
   }
+
+  .band-slot {
+    display: block;
+    margin-top: 3px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #666;
+    line-height: 1.2;
+  }
+
+  .schedule,
+  .soundcheck {
+    margin-bottom: 25px;
+  }
