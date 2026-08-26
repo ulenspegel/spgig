@@ -292,7 +292,7 @@ function getEvents(from, to) {
     let bands = [];
 
     try {
-      bands = JSON.parse(row[4]);
+      bands = JSON.parse(row[3]);
     } catch (error) {
       console.error('Invalid JSON for date:', date);
     }

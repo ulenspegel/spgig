@@ -7,4 +7,4 @@
  * Used by both the form (index.html) and the calendar view (view/index.html).
  */
 const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbynjm3RhCclR8KNhSZtyVQT3-gMMH_CwtTax-yNXHziJz2es1oPz8iUYx8YRTwruB58zA/exec";
+  "https://script.google.com/macros/s/AKfycby6w2yfa3rXfTDeFLiSEOsJdzL7PDUZUt799WD-lj-Le9tQUGf7frcp3OAEsdit5uQ4wg/exec";
