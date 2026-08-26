@@ -11,7 +11,6 @@ function doPost(e) {
 
     const row = [
       data.date,
-      data.startTime,
       data.organizer,
       data.bands.length,
       JSON.stringify(data.bands),
@@ -80,7 +79,6 @@ function getEventsSheet() {
 
     sheet.appendRow([
       'Date',
-      'Start time',
       'Organizer',
       'Bands',
       'JSON',
@@ -89,6 +87,14 @@ function getEventsSheet() {
     ]);
 
     sheet.setFrozenRows(1);
+  }
+
+  // One-time migration: remove the legacy "Start time" column
+  // from sheets created before it was dropped.
+  const header = sheet.getRange(1, 1, 1, 2).getDisplayValues()[0];
+
+  if (header[1] === 'Start time') {
+    sheet.deleteColumn(2);
   }
 
   return sheet;
@@ -110,7 +116,7 @@ function findRowByDateAndOrganizer(sheet, date, organizer) {
 
   for (let i = 0; i < values.length; i++) {
     const rowDate = values[i][0];
-    const rowOrganizer = values[i][2].trim();
+    const rowOrganizer = values[i][1].trim();
 
     if (
       rowDate === date &&
@@ -267,7 +273,7 @@ function getEvents(from, to) {
   }
 
   const values = sheet
-    .getRange(2, 1, lastRow - 1, 7)
+    .getRange(2, 1, lastRow - 1, 6)
     .getDisplayValues();
 
   const events = [];
@@ -293,12 +299,11 @@ function getEvents(from, to) {
 
     events.push({
       date: date,
-      startTime: row[1],
-      organizer: row[2],
-      bandsCount: Number(row[3]),
+      organizer: row[1],
+      bandsCount: Number(row[2]),
       bands: bands,
-      text: row[5],
-      updated: row[6]
+      text: row[4],
+      updated: row[5]
     });
   });
 

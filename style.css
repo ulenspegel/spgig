@@ -54,6 +54,22 @@ textarea {
   resize: vertical;
 }
 
+/* Checkbox labels: keep box and text on one line */
+label.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+input[type="checkbox"] {
+  display: inline-block;
+  width: auto;
+  margin-top: 0;
+  padding: 0;
+  border: none;
+  accent-color: #222;
+}
+
 .band {
   border: 1px solid #ddd;
   border-radius: 9px;

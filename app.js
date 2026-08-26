@@ -1,7 +1,6 @@
 // ============================================================
 // Band lineup form — app.js
 // ============================================================
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVukzuYP5HSMVrRGOo3UluWlXCL2iDfxuWnzI9CRIm0_GzS8F-k4lZQ5spuLAn-aziwA/exec";
 
 const bandCountInput = document.getElementById("bandCount");
 const bandsContainer = document.getElementById("bands");
@@ -91,10 +90,11 @@ function renderBands() {
 				</label>
 
 				<label>
-					Duration, minutes
+					Performance duration, minutes
 					<input
 						type="number"
 						min="1"
+						max="120"
 						data-index="${index}"
 						data-field="duration"
 						value="${band.duration}"
@@ -107,6 +107,7 @@ function renderBands() {
 					<input
 						type="number"
 						min="0"
+						max="2"
 						data-index="${index}"
 						data-field="guitarAmps"
 						value="${band.guitarAmps}"
@@ -118,6 +119,7 @@ function renderBands() {
 					<input
 						type="number"
 						min="0"
+						max="5"
 						data-index="${index}"
 						data-field="vocalMics"
 						value="${band.vocalMics}"
@@ -125,14 +127,14 @@ function renderBands() {
 				</label>
 			</div>
 
-			<label>
+			<label class="checkbox">
 				<input
 					type="checkbox"
 					data-index="${index}"
 					data-field="drums"
 					${band.drums ? "checked" : ""}
 				>
-				Has drums
+				Use drum set
 			</label>
 
 			<label>
@@ -388,9 +390,5 @@ function escapeHtml(value) {
 
 	return String(value).replace(/[&<>"']/g, char => map[char]);
 }
-
-/*
- * Insert the published Google Apps Script URL here.
- */
 
 updateBandCount();

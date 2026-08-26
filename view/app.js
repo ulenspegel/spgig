@@ -1,5 +1,3 @@
-const GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzVukzuYP5HSMVrRGOo3UluWlXCL2iDfxuWnzI9CRIm0_GzS8F-k4lZQ5spuLAn-aziwA/exec";
 const calendar = document.getElementById("calendar");
 const period = document.getElementById("period");
 const loading = document.getElementById("loading");
@@ -266,7 +264,28 @@ function showEventSelector(events) {
 
 function showEvent(event) {
     selectedEvent = event;
-  
+
+    /*
+     * Normalize bands: old or corrupted rows may contain an empty
+     * or malformed bands array, which would crash the rendering.
+     */
+    const bands =
+      (Array.isArray(event.bands) ? event.bands : []).filter(Boolean);
+
+    if (bands.length === 0) {
+      eventDetails.innerHTML = "";
+
+      const title = document.createElement("h2");
+      title.textContent = "No bands";
+
+      eventDetails.appendChild(title);
+
+      copyButton.classList.add("hidden");
+      modal.classList.remove("hidden");
+
+      return;
+    }
+
     eventDetails.innerHTML = "";
   
     const title = document.createElement("h2");
@@ -293,13 +312,13 @@ function showEvent(event) {
     scheduleTitle.textContent = "Performance times";
     schedule.appendChild(scheduleTitle);
 
-    const fallbackSchedule = event.bands.some(
+    const fallbackSchedule = bands.some(
       band => !band.slotStart || !band.slotEnd
     )
-      ? computeScheduleFallback(event.bands)
+      ? computeScheduleFallback(bands)
       : null;
 
-    event.bands.forEach((band, index) => {
+    bands.forEach((band, index) => {
       const line = document.createElement("div");
 
       line.textContent = band.slotStart && band.slotEnd
@@ -319,14 +338,14 @@ function showEvent(event) {
     soundcheckTitle.textContent = "Soundchecks";
     soundcheck.appendChild(soundcheckTitle);
 
-    const n = event.bands.length;
+    const n = bands.length;
     const start = 18 * 60; // 18:00
     const end = 20 * 60; // 20:00
     const slotLength = (end - start) / n;
 
     // Same rotation as the form: bands 2..n first,
     // the first performing band checks sound last.
-    const rotated = [...event.bands.slice(1), event.bands[0]];
+    const rotated = [...bands.slice(1), bands[0]];
 
     rotated.forEach((band, index) => {
       const line = document.createElement("div");
@@ -349,12 +368,12 @@ function showEvent(event) {
   
     /*
      * ВАЖНО:
-     * event.bands уже находится в порядке выступлений,
+     * bands уже находится в порядке выступлений,
      * заданном при заполнении формы.
      *
      * Здесь НЕ сортируем bands по времени или названию.
      */
-    event.bands.forEach((band, index) => {
+    bands.forEach((band, index) => {
       const element = document.createElement("div");
       element.className = "band";
   
@@ -459,7 +478,7 @@ function showEvent(event) {
     summary.className = "summary";
   
     summary.innerHTML = `
-      Total bands: ${event.bands.length}<br>
+      Total bands: ${bands.length}<br>
       Total participants: ${totalParticipants}<br>
       Total duration: ${totalDuration} min
     `;
