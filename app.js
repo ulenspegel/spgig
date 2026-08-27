@@ -391,4 +391,51 @@ function escapeHtml(value) {
 	return String(value).replace(/[&<>"']/g, char => map[char]);
 }
 
+// ============================================================
+// Prefill from calendar view ("Edit" button)
+// ============================================================
+
+function prefillFromEditEvent() {
+	const raw = sessionStorage.getItem("editEvent");
+
+	if (!raw) {
+		return;
+	}
+
+	sessionStorage.removeItem("editEvent");
+
+	let event;
+
+	try {
+		event = JSON.parse(raw);
+	} catch {
+		return;
+	}
+
+	if (!event || !Array.isArray(event.bands)) {
+		return;
+	}
+
+	document.getElementById("date").value = event.date || "";
+	document.getElementById("organizer").value = event.organizer || "";
+	bandCountInput.value = Math.max(1, event.bands.length);
+
+	bands = event.bands.map(band => ({
+		name: band.name || "",
+		members: band.members ?? "",
+		drums: Boolean(band.drums),
+		guitarAmps: band.guitarAmps ?? 0,
+		vocalMics: band.vocalMics ?? 0,
+		duration: band.duration || "",
+		notes: band.notes || ""
+	}));
+
+	renderBands();
+	renderOrder();
+	renderSoundcheck();
+
+	status.textContent = "Editing existing event";
+}
+
 updateBandCount();
+prefillFromEditEvent();

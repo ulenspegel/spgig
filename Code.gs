@@ -4,6 +4,10 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
 
+    if (data.action === 'delete') {
+      return deleteEvent(data);
+    }
+
     validateData(data);
 
     const sheet = getEventsSheet();
@@ -45,6 +49,34 @@ function doPost(e) {
       error: error.message
     });
   }
+}
+
+
+function deleteEvent(data) {
+  if (!data.date) {
+    throw new Error('Date is required');
+  }
+
+  if (!data.organizer || !data.organizer.trim()) {
+    throw new Error('Organizer is required');
+  }
+
+  const sheet = getEventsSheet();
+  const existingRow = findRowByDateAndOrganizer(
+    sheet,
+    data.date,
+    data.organizer
+  );
+
+  if (existingRow === -1) {
+    throw new Error('Event not found');
+  }
+
+  sheet.deleteRow(existingRow);
+
+  return jsonResponse({
+    ok: true
+  });
 }
 
 

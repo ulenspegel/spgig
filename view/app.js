@@ -484,12 +484,83 @@ function showEvent(event) {
     `;
   
     eventDetails.appendChild(summary);
-  
-  
+
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "copy-button";
+    editButton.textContent = "Edit";
+
+    editButton.addEventListener("click", () => {
+      openEditForm(event);
+    });
+
+    eventDetails.appendChild(editButton);
+
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "copy-button";
+    deleteButton.textContent = "Delete";
+
+    deleteButton.addEventListener("click", async () => {
+      if (!window.confirm(
+        `Delete event on ${formatDateHuman(event.date)} `
+        + `(${event.organizer})? This cannot be undone.`
+      )) {
+        return;
+      }
+
+      deleteButton.disabled = true;
+      deleteButton.textContent = "Deleting...";
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "delete",
+            date: event.date,
+            organizer: event.organizer
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          throw new Error(data.error || "Delete failed");
+        }
+
+        closeModal();
+        loadEvents();
+
+      } catch (error) {
+        console.error(error);
+
+        deleteButton.disabled = false;
+        deleteButton.textContent = "Delete";
+
+        window.alert(`Failed to delete: ${error.message}`);
+      }
+    });
+
+    eventDetails.appendChild(deleteButton);
+
+
     copyButton.classList.remove("hidden");
   
     modal.classList.remove("hidden");
   }
+
+
+/*
+ * Opens the entry form (../index.html) prefilled
+ * with the selected event's data.
+ */
+function openEditForm(event) {
+  sessionStorage.setItem("editEvent", JSON.stringify(event));
+
+  window.location.href = "../index.html";
+}
 
 
 closeModalButton.addEventListener(
