@@ -15,6 +15,10 @@ const status = document.getElementById("status");
 
 let bands = [];
 
+// Soundcheck order as indices into `bands`.
+// The last slot always belongs to the first performing band.
+let soundcheckOrder = [];
+
 // ============================================================
 // Band count management
 // ============================================================
@@ -46,6 +50,7 @@ function updateBandCount() {
 		);
 	}
 
+	rebuildSoundcheckOrder();
 	renderBands();
 	renderOrder();
 	renderSoundcheck();
@@ -54,6 +59,32 @@ function updateBandCount() {
 // ============================================================
 // Rendering
 // ============================================================
+
+function rebuildSoundcheckOrder() {
+	const indices = bands.map((_, index) => index);
+
+	// Default: bands 2..n first, the first performing band last.
+	soundcheckOrder = indices.length > 0
+		? [...indices.slice(1), indices[0]]
+		: [];
+}
+
+function computeSoundcheckSchedule() {
+	const n = bands.length;
+	const start = 18 * 60; // 18:00
+	const slotLength = (2 * 60) / n; // 18:00–20:00 split evenly
+
+	return bands.map((_, bandIndex) => {
+		const slot = soundcheckOrder.indexOf(bandIndex);
+		const slotStart = start + slot * slotLength;
+		const slotEnd = slotStart + slotLength;
+
+		return {
+			start: formatTime(slotStart),
+			end: formatTime(slotEnd)
+		};
+	});
+}
 
 function renderBands() {
 	bandsContainer.innerHTML = "";
@@ -213,11 +244,9 @@ function renderSoundcheck() {
 	const end = 20 * 60; // 20:00
 	const slotLength = (end - start) / n;
 
-	// Soundcheck order: bands 2..n first (in performance order),
-	// the first performing band checks sound last.
-	const rotated = [...bands.slice(1), bands[0]];
+	soundcheckOrder.forEach((bandIndex, index) => {
+		const band = bands[bandIndex];
 
-	rotated.forEach((band, index) => {
 		const item = document.createElement("div");
 		item.className = "order-item";
 
@@ -225,9 +254,30 @@ function renderSoundcheck() {
 		const slotEnd = slotStart + slotLength;
 
 		const title = document.createElement("span");
-		title.textContent = `${formatTime(slotStart)}–${formatTime(slotEnd)} ${band.name || `Band ${bands.indexOf(band) + 1}`}`;
+		title.textContent = `${formatTime(slotStart)}–${formatTime(slotEnd)} ${band.name || `Band ${bandIndex + 1}`}`;
+
+		const controls = document.createElement("div");
+		controls.className = "order-controls";
+
+		const upButton = document.createElement("button");
+		upButton.type = "button";
+		upButton.textContent = "↑";
+		upButton.disabled = index === 0 || index === n - 1;
+
+		const downButton = document.createElement("button");
+		downButton.type = "button";
+		downButton.textContent = "↓";
+		downButton.disabled = index >= n - 2;
+
+		upButton.addEventListener("click", () => moveSoundcheck(index, -1));
+		downButton.addEventListener("click", () => moveSoundcheck(index, 1));
+
+		controls.appendChild(upButton);
+		controls.appendChild(downButton);
 
 		item.appendChild(title);
+		item.appendChild(controls);
+
 		soundcheckList.appendChild(item);
 	});
 }
@@ -278,6 +328,26 @@ function renderOrder() {
 }
 
 // ============================================================
+// Soundcheck order management
+// ============================================================
+
+function moveSoundcheck(index, direction) {
+	const newIndex = index + direction;
+	const lastIndex = soundcheckOrder.length - 1;
+
+	// The last slot is reserved for the first performing band.
+	if (index === lastIndex || newIndex < 0 || newIndex >= lastIndex) {
+		return;
+	}
+
+	const temp = soundcheckOrder[index];
+	soundcheckOrder[index] = soundcheckOrder[newIndex];
+	soundcheckOrder[newIndex] = temp;
+
+	renderSoundcheck();
+}
+
+// ============================================================
 // Order management
 // ============================================================
 
@@ -309,6 +379,18 @@ function moveBand(index, direction) {
 	bands[index] = bands[newIndex];
 	bands[newIndex] = temp;
 
+	// Keep the soundcheck order attached to the bands themselves.
+	soundcheckOrder = soundcheckOrder.map(
+		i => (i === index ? newIndex : i === newIndex ? index : i)
+	);
+
+	// The first performing band must always check sound last.
+	const firstPos = soundcheckOrder.indexOf(0);
+	if (firstPos !== -1 && firstPos !== soundcheckOrder.length - 1) {
+		soundcheckOrder.splice(firstPos, 1);
+		soundcheckOrder.push(0);
+	}
+
 	renderBands();
 	renderOrder();
 	renderSoundcheck();
@@ -325,6 +407,7 @@ eventForm.addEventListener("submit", async event => {
 	status.textContent = "Saving...";
 
 	const schedule = computeSchedule();
+	const soundcheckSchedule = computeSoundcheckSchedule();
 
 	const data = {
 		date: document.getElementById("date").value,
@@ -332,7 +415,9 @@ eventForm.addEventListener("submit", async event => {
 		bands: bands.map((band, index) => ({
 			...band,
 			slotStart: schedule[index].start,
-			slotEnd: schedule[index].end
+			slotEnd: schedule[index].end,
+			soundcheckStart: soundcheckSchedule[index].start,
+			soundcheckEnd: soundcheckSchedule[index].end
 		}))
 	};
 
@@ -427,8 +512,21 @@ function prefillFromEditEvent() {
 		guitarAmps: band.guitarAmps ?? 0,
 		vocalMics: band.vocalMics ?? 0,
 		duration: band.duration || "",
-		notes: band.notes || ""
+		notes: band.notes || "",
+		soundcheckStart: band.soundcheckStart || "",
+		soundcheckEnd: band.soundcheckEnd || ""
 	}));
+
+	// Restore the saved soundcheck order; fall back to the
+	// default rotation for events saved before it was stored.
+	if (bands.every(band => band.soundcheckStart && band.soundcheckEnd)) {
+		soundcheckOrder = bands
+			.map((band, index) => ({ index, start: band.soundcheckStart }))
+			.sort((a, b) => a.start.localeCompare(b.start))
+			.map(item => item.index);
+	} else {
+		rebuildSoundcheckOrder();
+	}
 
 	renderBands();
 	renderOrder();

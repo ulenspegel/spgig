@@ -338,26 +338,45 @@ function showEvent(event) {
     soundcheckTitle.textContent = "Soundchecks";
     soundcheck.appendChild(soundcheckTitle);
 
-    const n = bands.length;
-    const start = 18 * 60; // 18:00
-    const end = 20 * 60; // 20:00
-    const slotLength = (end - start) / n;
+    const hasSoundcheckTimes = bands.every(
+      band => band.soundcheckStart && band.soundcheckEnd
+    );
 
-    // Same rotation as the form: bands 2..n first,
-    // the first performing band checks sound last.
-    const rotated = [...bands.slice(1), bands[0]];
+    if (hasSoundcheckTimes) {
+      const ordered = bands.slice().sort((a, b) =>
+        a.soundcheckStart.localeCompare(b.soundcheckStart)
+      );
 
-    rotated.forEach((band, index) => {
-      const line = document.createElement("div");
+      ordered.forEach(band => {
+        const line = document.createElement("div");
 
-      const slotStart = start + index * slotLength;
-      const slotEnd = slotStart + slotLength;
+        line.textContent =
+          `${band.soundcheckStart}–${band.soundcheckEnd} ${band.name}`;
 
-      line.textContent =
-        `${formatTime(slotStart)}–${formatTime(slotEnd)} ${band.name}`;
+        soundcheck.appendChild(line);
+      });
+    } else {
+      const n = bands.length;
+      const start = 18 * 60; // 18:00
+      const end = 20 * 60; // 20:00
+      const slotLength = (end - start) / n;
 
-      soundcheck.appendChild(line);
-    });
+      // Legacy fallback, same rotation as the old form:
+      // bands 2..n first, the first performing band last.
+      const rotated = [...bands.slice(1), bands[0]];
+
+      rotated.forEach((band, index) => {
+        const line = document.createElement("div");
+
+        const slotStart = start + index * slotLength;
+        const slotEnd = slotStart + slotLength;
+
+        line.textContent =
+          `${formatTime(slotStart)}–${formatTime(slotEnd)} ${band.name}`;
+
+        soundcheck.appendChild(line);
+      });
+    }
 
     eventDetails.appendChild(soundcheck);
 

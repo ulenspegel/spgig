@@ -221,18 +221,37 @@ function buildText(data) {
   });
   lines.push('');
 
-  // Soundcheck slots: 18:00–20:00 split evenly,
-  // bands 2..n first, the first performing band last.
-  const scStart = 18 * 60;
-  const scSlot = (2 * 60) / n;
-  const rotated = data.bands.slice(1).concat([data.bands[0]]);
+  // Soundcheck slots: stored per band by the form. For old events
+  // saved before soundcheckStart/soundcheckEnd existed, fall back
+  // to 18:00–20:00 split evenly, bands 2..n first,
+  // the first performing band last.
+  const hasSoundcheckTimes = data.bands.every(
+    band => band.soundcheckStart && band.soundcheckEnd
+  );
 
   lines.push('Soundchecks:');
-  rotated.forEach((band, index) => {
-    const start = scStart + index * scSlot;
-    const end = start + scSlot;
-    lines.push(`${formatTime(start)}–${formatTime(end)} ${band.name}`);
-  });
+
+  if (hasSoundcheckTimes) {
+    const ordered = data.bands.slice().sort((a, b) =>
+      a.soundcheckStart.localeCompare(b.soundcheckStart)
+    );
+
+    ordered.forEach(band => {
+      lines.push(
+        `${band.soundcheckStart}–${band.soundcheckEnd} ${band.name}`
+      );
+    });
+  } else {
+    const scStart = 18 * 60;
+    const scSlot = (2 * 60) / n;
+    const rotated = data.bands.slice(1).concat([data.bands[0]]);
+
+    rotated.forEach((band, index) => {
+      const start = scStart + index * scSlot;
+      const end = start + scSlot;
+      lines.push(`${formatTime(start)}–${formatTime(end)} ${band.name}`);
+    });
+  }
   lines.push('');
 
   let totalDuration = 0;

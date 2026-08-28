@@ -1,0 +1,1 @@
+Use wing "spsec" with mempalace on that workspace
