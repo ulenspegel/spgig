@@ -12,8 +12,14 @@ const result = document.getElementById("result");
 const resultText = document.getElementById("resultText");
 const copyButton = document.getElementById("copyButton");
 const status = document.getElementById("status");
+const changeoverMinus = document.getElementById("changeoverMinus");
+const changeoverPlus = document.getElementById("changeoverPlus");
+const changeoverValue = document.getElementById("changeoverValue");
 
 let bands = [];
+
+// Change-over time between bands, minutes (10–60, step 5).
+let changeOver = 20;
 
 // Soundcheck order as indices into `bands`.
 // The last slot always belongs to the first performing band.
@@ -188,48 +194,27 @@ function renderBands() {
 
 function computeSchedule() {
 	const n = bands.length;
-	const totalPerf = bands.reduce(
-		(sum, band) => sum + (Number(band.duration) || 0),
-		0
-	);
-	const changeTime = (n - 1) * 10;
-	const isLongSet = totalPerf + changeTime > 120;
-	const totalLength = isLongSet ? 150 : 120;
+	const endTime = 23 * 60; // The last band always ends at 23:00.
 
-	// Leftover time is split into n-1 gaps between bands,
-	// rounded down to multiples of 5 minutes (min 10 min),
-	// then the remainder is spread one extra 5 min at a time.
-	const leftover = totalLength - totalPerf;
-	const gaps = [];
-	let baseGap = Math.max(10, Math.floor(leftover / (n - 1) / 5) * 5);
-	let remainder = leftover - baseGap * (n - 1);
+	// Walk backwards from the last band's end time:
+	// each previous band ends `changeOver` minutes before the next starts.
+	const schedule = new Array(n);
 
-	for (let i = 0; i < n - 1; i++) {
-		let gap = baseGap;
+	let nextStart = endTime;
 
-		if (remainder >= 5) {
-			gap += 5;
-			remainder -= 5;
-		}
+	for (let i = n - 1; i >= 0; i--) {
+		const duration = Number(bands[i].duration) || 0;
+		const start = nextStart - duration;
 
-		gaps.push(gap);
+		schedule[i] = {
+			start: formatTime(start),
+			end: formatTime(nextStart)
+		};
+
+		nextStart = start - changeOver;
 	}
 
-	const endTime = 23 * 60; // 23:00 in minutes
-	let current = endTime - totalLength;
-
-	return bands.map((band, index) => {
-		const duration = Number(band.duration) || 0;
-		const start = current;
-		const end = start + duration;
-
-		current = end + (gaps[index] || 0);
-
-		return {
-			start: formatTime(start),
-			end: formatTime(end)
-		};
-	});
+	return schedule;
 }
 
 function renderSoundcheck() {
@@ -281,6 +266,15 @@ function renderSoundcheck() {
 		soundcheckList.appendChild(item);
 	});
 }
+
+function updateChangeOver(delta) {
+	changeOver = Math.min(60, Math.max(10, changeOver + delta));
+	changeoverValue.textContent = changeOver;
+	renderOrder();
+}
+
+changeoverMinus.addEventListener("click", () => updateChangeOver(-5));
+changeoverPlus.addEventListener("click", () => updateChangeOver(5));
 
 function formatTime(minutes) {
 	const hours = Math.floor(minutes / 60);
@@ -513,9 +507,27 @@ function prefillFromEditEvent() {
 		vocalMics: band.vocalMics ?? 0,
 		duration: band.duration || "",
 		notes: band.notes || "",
+		slotStart: band.slotStart || "",
+		slotEnd: band.slotEnd || "",
 		soundcheckStart: band.soundcheckStart || "",
 		soundcheckEnd: band.soundcheckEnd || ""
 	}));
+
+	// Restore change-over from the gap between the first band's
+	// slotEnd and the second band's slotStart; clamp to 10–60.
+	if (bands.length >= 2 && bands[0].slotEnd && bands[1].slotStart) {
+		const toMinutes = time => {
+			const [h, m] = time.split(":").map(Number);
+			return h * 60 + m;
+		};
+
+		const gap = toMinutes(bands[1].slotStart) - toMinutes(bands[0].slotEnd);
+
+		if (Number.isFinite(gap)) {
+			changeOver = Math.min(60, Math.max(10, Math.round(gap / 5) * 5));
+			changeoverValue.textContent = changeOver;
+		}
+	}
 
 	// Restore the saved soundcheck order; fall back to the
 	// default rotation for events saved before it was stored.

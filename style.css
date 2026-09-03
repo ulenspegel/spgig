@@ -172,3 +172,29 @@ button:disabled {
 .order-controls button:disabled {
   opacity: 0.3;
 }
+
+.changeover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepper button {
+  width: 42px;
+  padding: 8px;
+  font-size: 18px;
+}
+
+.stepper span {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 600;
+}
